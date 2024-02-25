@@ -125,6 +125,8 @@ class _RegistrationPageState extends State<RegistrationPage> {
         ),
         child: Row(
           children: [
+            Icon(iconData),
+
             Expanded(
               child: DropdownButtonFormField<String>(
                 value: value,
@@ -146,7 +148,6 @@ class _RegistrationPageState extends State<RegistrationPage> {
                 ),
               ),
             ),
-            Icon(iconData),
           ],
         ),
       ),

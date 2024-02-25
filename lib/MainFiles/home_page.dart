@@ -90,7 +90,7 @@ class _HomePageState extends State<HomePage> {
       child: ElevatedButton(
         onPressed: onPressed,
         style: ElevatedButton.styleFrom(
-          primary: Colors.blue, // Change the color as needed
+          backgroundColor: Colors.blue, // Change the color as needed
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(ScreenUtil().setWidth(30)),
           ),

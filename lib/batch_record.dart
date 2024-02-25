@@ -185,7 +185,7 @@ class _BatchRecordState extends State<BatchRecord> {
         onPressed: onPressed,
         child: Text(label),
         style: ElevatedButton.styleFrom(
-          primary: isSelected ? Colors.blue : Color.fromRGBO(217, 217, 217, 1),
+          backgroundColor: isSelected ? Colors.blue : Color.fromRGBO(217, 217, 217, 1),
         ),
       ),
     );

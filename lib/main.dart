@@ -1,13 +1,24 @@
 import 'package:flutter/material.dart';
-// import 'MainFiles/login_page.dart';
-import 'try_file.dart';
+import 'MainFiles/login_page.dart';
+// import 'try_file.dart';
 import 'firebase_options.dart';
 import 'package:firebase_core/firebase_core.dart';
-
+import 'package:provider/provider.dart';
+import 'package:care_utility/ConfidentialVault/Auth_provider.dart';
 
 void main() async{
-  runApp(const MyApp());
-}
+
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+  runApp(
+    ChangeNotifierProvider(
+      create: (context) => AuthProvider(),
+      child: MyApp(),
+    ),
+  );}
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
