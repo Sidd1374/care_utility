@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import '../batch_record.dart';
+import '../archive/batch_record.dart';
 import 'package:care_utility/MainFiles/register_page.dart';
-import 'MainFiles/batch_record_page.dart';
-import 'MainFiles/batch_weight_page.dart';
+import '../MainFiles/batch_record_page.dart';
+import '../MainFiles/batch_weight_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);

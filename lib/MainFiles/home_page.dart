@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import '../batch_record.dart';
-import '../try_file2.dart';
+import '../archive/batch_record.dart';
+import '../try/try_file2.dart';
 import 'package:care_utility/MainFiles/register_page.dart';
 import 'batch_record_page.dart';
 import 'batch_weight_page.dart';

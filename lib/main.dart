@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'MainFiles/login_page.dart';
-// import 'try_file.dart';
+// import 'MainFiles/login_page_ui.dart';
+import 'try/try_file.dart';
 import 'firebase_options.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
@@ -18,7 +18,8 @@ void main() async{
       create: (context) => AuthProvider(),
       child: MyApp(),
     ),
-  );}
+  );
+}
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
