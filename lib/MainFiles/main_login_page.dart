@@ -17,9 +17,9 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
-
-
   bool _isRegistering = false;
+  bool _isPasswordVisible = false;
+  String? _selectedRole;
 
   Future<void> _login() async {
     try {
@@ -53,7 +53,10 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     ScreenUtil.init(
-        context, designSize: const Size(411, 890), minTextAdapt: true);
+      context,
+      designSize: const Size(411, 890),
+      minTextAdapt: true,
+    );
 
     return Scaffold(
       backgroundColor: const Color.fromRGBO(1, 10, 89, 50),
@@ -63,12 +66,11 @@ class _LoginPageState extends State<LoginPage> {
           child: Center(
             child: SingleChildScrollView(
               child: Container(
-                width: MediaQuery
-                    .of(context)
-                    .size
-                    .width,
+                width: MediaQuery.of(context).size.width,
                 padding: const EdgeInsets.symmetric(
-                    horizontal: 24, vertical: 40),
+                  horizontal: 24,
+                  vertical: 40,
+                ),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(30),
@@ -82,6 +84,7 @@ class _LoginPageState extends State<LoginPage> {
                       height: ScreenUtil().setHeight(200),
                     ),
                     SizedBox(height: ScreenUtil().setHeight(20)),
+
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -90,13 +93,12 @@ class _LoginPageState extends State<LoginPage> {
                             setState(() {
                               _isRegistering = false;
                             });
-                            _login();
                           },
                           child: Text(
                             'Login',
                             style: TextStyle(
                               fontSize: ScreenUtil().setSp(28),
-                              color: _isRegistering == false
+                              color: !_isRegistering
                                   ? Colors.green
                                   : const Color.fromRGBO(1, 10, 89, 50),
                               fontWeight: FontWeight.bold,
@@ -108,13 +110,12 @@ class _LoginPageState extends State<LoginPage> {
                             setState(() {
                               _isRegistering = true;
                             });
-                            _register();
                           },
                           child: Text(
                             'Register',
                             style: TextStyle(
                               fontSize: ScreenUtil().setSp(28),
-                              color: _isRegistering == true
+                              color: _isRegistering
                                   ? Colors.green
                                   : const Color.fromRGBO(1, 10, 89, 50),
                               fontWeight: FontWeight.bold,
@@ -123,9 +124,19 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                       ],
                     ),
-                    SizedBox(height: ScreenUtil().setHeight(35)),
-                    _isRegistering ? _buildRegistrationForm() : _buildLoginForm(),
 
+                    AnimatedCrossFade(
+                      firstChild: _buildRegistrationForm(),
+                      secondChild: _buildLoginForm(),
+                      crossFadeState: _isRegistering ? CrossFadeState.showFirst : CrossFadeState.showSecond,
+                      duration: const Duration(milliseconds: 500),
+                      // onCompleted: () {
+                      //   // Start animation after page transition is completed
+                      //   // Add your animation controller forward here
+                      // },
+                    ),
+
+                    SizedBox(height: ScreenUtil().setHeight(35)),
                   ],
                 ),
               ),
@@ -135,12 +146,6 @@ class _LoginPageState extends State<LoginPage> {
       ),
     );
   }
-
-
-  bool _isPasswordVisible = false;
-  String? _selectedRole;
-
-
 
   Widget _buildLoginForm() {
     return Form(
@@ -326,7 +331,6 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-
   void _register() {
     // Implement registration logic here
     // For now, just toggle the form
@@ -334,5 +338,4 @@ class _LoginPageState extends State<LoginPage> {
       _isRegistering = false;
     });
   }
-
 }

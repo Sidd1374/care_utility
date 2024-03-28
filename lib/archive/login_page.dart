@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'home_page.dart';
+import '../MainFiles/home_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'register_page.dart';
 
@@ -79,7 +79,7 @@ class _LoginPageState extends State<LoginPage> {
                     'Login',
                     style: TextStyle(
                       fontSize: ScreenUtil().setSp(35),
-                      color: Colors.indigo,
+                      color: const Color.fromRGBO(1, 10, 89, 50),
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -134,7 +134,7 @@ class _LoginPageState extends State<LoginPage> {
                 Center(
                   child: ElevatedButton(
                     onPressed: _login,
-                    child: Text('Login'),
+                    child: const Text('Login'),
                   ),
                 ),
                 SizedBox(height: ScreenUtil().setHeight(20)),

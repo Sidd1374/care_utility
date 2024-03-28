@@ -25,8 +25,17 @@ class _RegistrationPageState extends State<RegistrationPage> {
 
     return Scaffold(
       appBar: AppBar(
-        automaticallyImplyLeading: false,
-        title: const Text('User Registration'),
+        leading: IconButton(
+          icon: Icon(
+            Icons.arrow_back_ios, // Set the desired icon
+            // color: Colors.white,
+          ),
+          onPressed: () {
+            // Add functionality for the back button
+            Navigator.of(context).pop(); // Example: Navigate back when the button is pressed
+          },
+        ),
+        title: Text('User Registration'),
       ),
       body: Padding(
         padding: EdgeInsets.all(16.w),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class BatchRecordPage extends StatefulWidget {
   @override
@@ -11,6 +12,8 @@ class _BatchRecordPageState extends State<BatchRecordPage> {
   TextEditingController completionDateController = TextEditingController();
 
   bool completionDateSameAsCommencement = false;
+
+  final firestore = FirebaseFirestore.instance;
 
   String selectedShiftOption = '';
   String selectedLineOption = '';
@@ -216,17 +219,59 @@ class _BatchRecordPageState extends State<BatchRecordPage> {
     return Padding(
       padding: const EdgeInsets.all(20),
       child: ElevatedButton(
-        onPressed: () {
-          print('Submit button pressed');
-          print('Batch Number: ${batchNumberController.text}');
-          print('Date of Commencement: ${commencementDateController.text}');
-          print('Date of Completion: ${completionDateController.text}');
-          print('Completion date same as commencement: $completionDateSameAsCommencement');
-          print('Selected Shift: $selectedShiftOption');
-          print('Selected Line: $selectedLineOption');
+        onPressed: () async {
+          // Access Firestore instance
+          CollectionReference batchInfoCollection = FirebaseFirestore.instance.collection('Care_utility_db').doc('dual_air_dev').collection('mgmt_record').doc('batch_info').collection('batches');
+
+          CollectionReference batchListCollection = FirebaseFirestore.instance.collection('Care_utility_db').doc('dual_air_dev').collection('mgmt_record').doc('batch_info').collection('batch_list');
+
+          String batchnumber = batchNumberController.text;
+
+          // Prepare data to be added to Firestore
+          Map<String, dynamic> batchData = {
+            'batchNumber': batchNumberController.text,
+            'commencementDate': commencementDateController.text,
+            'completionDate': completionDateController.text,
+            'selectedShift': selectedShiftOption,
+            'selectedLine': selectedLineOption,
+          };
+
+          // Add the data to Firestore
+          batchInfoCollection.doc(batchnumber).set(batchData)
+              .then((value) {
+            // Data added successfully
+            print('Batch data added to Firestore.');
+            // You can add further actions or UI updates here if needed
+          })
+              .catchError((error) {
+            // Error occurred while adding data
+            print('Error adding batch data to Firestore: $error');
+            // Handle the error or show a message to the user
+          });
+
+          // Get the current count of documents in "numbers" collection
+          DocumentSnapshot documentSnapshot = await batchListCollection.doc('numbers').get();
+          int currentCount = documentSnapshot.exists ? (documentSnapshot.data()! as Map<String, dynamic>).length : 0;
+
+          // Add new serial number and batch number to "numbers" document in "batch_list" collection
+          batchListCollection.doc('numbers').set({
+            '${currentCount + 1}': batchNumberController.text, // Add batch number with new serial number
+          }, SetOptions(merge: true))
+              .then((value) {
+            // Serial number and batch number added successfully
+            print('Serial number and batch number added to Firestore.');
+            // You can add further actions or UI updates here if needed
+          })
+              .catchError((error) {
+            // Error occurred while adding serial number and batch number
+            print('Error adding serial number and batch number to Firestore: $error');
+            // Handle the error or show a message to the user
+          });
         },
         child: const Text('Submit'),
       ),
     );
   }
+
+
 }

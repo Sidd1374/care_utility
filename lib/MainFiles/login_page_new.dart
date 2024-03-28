@@ -223,16 +223,16 @@ class _LoginPageState extends State<LoginPage> {
             child: TextButton(
               onPressed: () {
                 Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const lg.LoginPage(title: "login")),
-                    );
+                  context,
+                  MaterialPageRoute(builder: (context) => const lg.LoginPage(title: "login")),
+                );
               },
               child: const Text(
-              'Forgot Password?',
-              style: TextStyle(
-                color: Colors.blue,
-                fontWeight: FontWeight.bold,
-              ),
+                'Forgot Password?',
+                style: TextStyle(
+                  color: Colors.blue,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
           ),

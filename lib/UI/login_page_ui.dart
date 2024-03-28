@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../MainFiles/home_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../MainFiles/register_page.dart';
-import 'package:care_utility/MainFiles/login_page.dart'as lg;
+import '../archive/register_page.dart';
+import 'package:care_utility/archive/login_page.dart'as lg;
 
 class LoginPage extends StatefulWidget {
   const LoginPage({Key? key, required this.title}) : super(key: key);

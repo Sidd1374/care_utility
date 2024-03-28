@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-// import 'MainFiles/login_page_ui.dart';
-import 'try/try_file.dart';
+import 'MainFiles/login_page_new.dart';
+// import 'try/try_file.dart';
 import 'firebase_options.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';

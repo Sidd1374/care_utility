@@ -45,6 +45,7 @@ dependencies:
   path_provider: ^2.1.2
   shared_preferences: ^2.0.15
   cloud_firestore: ^4.15.5
+#  get: ^4.6.6
 
 
 
