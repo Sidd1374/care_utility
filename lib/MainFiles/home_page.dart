@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../archive/batch_record.dart';
-import '../try/try_file3.dart';
+// import '../try/try_file3.dart';
+// import 'package:care_utility/try/trry.dart';
+import 'reconciliation_page.dart';
 import 'package:care_utility/archive/register_page.dart';
 import 'batch_record_page.dart';
 import 'batch_weight_page.dart';
@@ -59,7 +61,7 @@ class _HomePageState extends State<HomePage> {
                           () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (context) => BatchListPage()),
+                          MaterialPageRoute(builder: (context) => MaterialReconciliationPage()),
                         );
                       },
                     ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class MaterialReconciliationPage extends StatefulWidget {
   @override
@@ -6,8 +7,7 @@ class MaterialReconciliationPage extends StatefulWidget {
       _MaterialReconciliationPageState();
 }
 
-class _MaterialReconciliationPageState
-    extends State<MaterialReconciliationPage> {
+class _MaterialReconciliationPageState extends State<MaterialReconciliationPage> {
   String? selectedOption;
   late List<Map<String, TextEditingController>> controllers;
   final List<String> materials = [
@@ -21,6 +21,8 @@ class _MaterialReconciliationPageState
     'Corrugated Box',
     'Tape',
   ];
+
+  List<Map<String, String>> weightList = [];
 
   @override
   void initState() {
@@ -36,12 +38,10 @@ class _MaterialReconciliationPageState
         'fgReceived': TextEditingController(),
         'totalRejection': TextEditingController(),
         'qcControlSample': TextEditingController(),
-        'qtyUsed': TextEditingController(), // Added for Qty Used
-        'qtyReturned': TextEditingController(), // Added for Qty Returned
-        'percentageRejection': TextEditingController(), // Added for % Rejection
       },
     );
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -164,7 +164,7 @@ class _MaterialReconciliationPageState
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: DataTable(
-        columns: [
+        columns: const [
           DataColumn(label: Text('Material')),
           DataColumn(label: Text('Qty. Received')),
           DataColumn(label: Text('FG Received by Store')),
@@ -177,28 +177,16 @@ class _MaterialReconciliationPageState
         rows: List<DataRow>.generate(
           materials.length,
               (index) {
-            // Retrieve values from controllers or provide default empty string
-            String qtyReceived = controllers[index]['qtyReceived']?.text ?? '';
-            String fgReceived = controllers[index]['fgReceived']?.text ?? '';
-            String totalRejection =
-                controllers[index]['totalRejection']?.text ?? '';
-            String qcControlSample =
-                controllers[index]['qcControlSample']?.text ?? '';
-            String qtyUsed = controllers[index]['qtyUsed']?.text ?? '';
-            String qtyReturned = controllers[index]['qtyReturned']?.text ?? '';
-            String percentageRejection =
-                controllers[index]['percentageRejection']?.text ?? '';
-
             return DataRow(
               cells: [
                 DataCell(Text(materials[index])),
-                DataCell(Text(qtyReceived)),
-                DataCell(Text(fgReceived)),
-                DataCell(Text(totalRejection)),
-                DataCell(Text(qcControlSample)),
-                DataCell(Text(qtyUsed)),
-                DataCell(Text(qtyReturned)),
-                DataCell(Text(percentageRejection)),
+                DataCell(Text(controllers[index]['qtyReceived']?.text ?? '')),
+                DataCell(Text(controllers[index]['fgReceived']?.text ?? '')),
+                DataCell(Text(controllers[index]['totalRejection']?.text ?? '')),
+                DataCell(Text(controllers[index]['qcControlSample']?.text ?? '')),
+                DataCell(Text('')), // Qty. Used
+                DataCell(Text('')), // Qty. Returned
+                DataCell(Text('')), // % Rejection
               ],
             );
           },
@@ -212,58 +200,20 @@ class _MaterialReconciliationPageState
       setState(() {
         for (int i = 0; i < materials.length; i++) {
           String qtyReceived = controllers[i]['qtyReceived']!.text;
+          String fgReceived = controllers[i]['fgReceived']!.text;
           String totalRejection = controllers[i]['totalRejection']!.text;
           String qcControlSample = controllers[i]['qcControlSample']!.text;
 
-          double qtyUsed = _calculateQtyUsed(qtyReceived, totalRejection, qcControlSample);
-          double qtyReturned = _calculateQtyReturned(qtyReceived, qtyUsed);
-          double percentageRejection = _calculatePercentageRejection(totalRejection, qtyUsed);
-
-          // Perform null check before accessing text property
-          if (controllers[i]['qtyUsed'] != null &&
-              controllers[i]['qtyReturned'] != null &&
-              controllers[i]['percentageRejection'] != null) {
-            controllers[i]['qtyUsed']!.text = qtyUsed.toStringAsFixed(2);
-            controllers[i]['qtyReturned']!.text = qtyReturned.toStringAsFixed(2);
-            controllers[i]['percentageRejection']!.text = percentageRejection.toStringAsFixed(2);
-          }
+          weightList.add({
+            'material': materials[i],
+            'qtyReceived': qtyReceived,
+            'fgReceived': fgReceived,
+            'totalRejection': totalRejection,
+            'qcControlSample': qcControlSample,
+          });
         }
       });
     }
   }
 
-
-
-
-
-
-  double _calculateQtyUsed(String qtyReceived, String totalRejection, String qcControlSample) {
-    double a = double.parse(qtyReceived);
-    double b = double.parse(totalRejection);
-    double c = double.parse(qcControlSample);
-    return a + b + c;
-  }
-
-  double _calculateQtyReturned(String qtyReceived, double qtyUsed) {
-    double A = double.parse(qtyReceived);
-    return A - qtyUsed;
-  }
-
-  double _calculatePercentageRejection(String totalRejection, double qtyUsed) {
-    double b = double.parse(totalRejection);
-    return (b * 100) / qtyUsed;
-  }
-
-
-
-  @override
-  void dispose() {
-    // Dispose of the TextEditingController instances to avoid memory leaks
-    controllers.forEach((map) {
-      map.forEach((key, controller) {
-        controller.dispose();
-      });
-    });
-    super.dispose();
-  }
 }
