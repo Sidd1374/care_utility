@@ -38,6 +38,7 @@ class TestScreen extends StatelessWidget {
         docNumbers.add(doc.id); // or doc['your_field_name'] if you want to get field value
       }
       print(docNumbers);
+
     } catch (e) {
       print(e.toString());
     }

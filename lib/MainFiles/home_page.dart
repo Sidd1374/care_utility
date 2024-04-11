@@ -6,9 +6,8 @@ import 'batch_record_page.dart';
 import 'reconciliation_page.dart';
 import 'batch_weight_page.dart';
 // import 'package:care_utility/try/trry.dart';
-// import 'package:care_utility/archive/register_page.dart';
-// import '../try/try_file3.dart';
 import '../try/try_file2.dart';
+// import '../try/try_file.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -65,7 +64,8 @@ class _HomePageState extends State<HomePage> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (context) => MaterialDispensingPage()),
+                            // builder: (context) => MaterialDispensingPage()),
+                            builder: (context) => TestScreen()),
                       );
                     },
                   ),

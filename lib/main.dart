@@ -30,10 +30,10 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return const MaterialApp(
       title: 'CU Manager',
-      // home: LoginPage(
-      //   title: 'Login',
-      // ),
-      home: HomePage(),
+      home: LoginPage(
+        title: 'Login',
+      ),
+      // home: HomePage(),
     );
   }
 }

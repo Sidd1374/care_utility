@@ -17,38 +17,62 @@ class _BatchWeightPageState extends State<BatchWeightPage> {
   @override
   void initState() {
     super.initState();
-    fetchBatchNumbers();
+    fetchBatches();
   }
 
-  Future<void> fetchBatchNumbers() async {
+  // Future<void> fetchBatchNumbers() async {
+  //   try {
+  //     QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+  //         .collection('Care_utility_db')
+  //         .doc('dual_air_dev')
+  //         .collection('mgmt_record')
+  //         .doc('batch_info')
+  //         .collection('batches')
+  //         .get();
+  //
+  //     List<Map<String, dynamic>> numbers = [];
+  //     for (QueryDocumentSnapshot doc in querySnapshot.docs) {
+  //       QuerySnapshot numberSnapshot = await doc.reference.collection('numbers')
+  //           .get();
+  //       for (QueryDocumentSnapshot numberDoc in numberSnapshot.docs) {
+  //         numbers.add({'batchNumber': numberDoc['batch_number'] as String});
+  //       }
+  //     }
+  //
+  //     setState(() {
+  //       print("got the data");
+  //       print(numbers);
+  //       batchNumbers = numbers;
+  //     });
+  //   } catch (e) {
+  //     print("Error fetching batch numbers: $e");
+  //     throw Exception('Failed to fetch batch numbers: $e');
+  //   }
+  // }
+
+  Future<void> fetchBatches() async {
     try {
-      QuerySnapshot querySnapshot = await FirebaseFirestore.instance
-          .collection('Care_utility_db')
-          .doc('dual_air_dev')
-          .collection('mgmt_record')
-          .doc('batch_info')
-          .collection('batches')
-          .get();
+      CollectionReference batches = FirebaseFirestore.instance.collection('Care_utility_db/dual_air_dev/mgmt_record/batch_info/batches');
+      // QuerySnapshot querySnapshot = await batches.orderBy('timestamp', descending: true).limit(5).get();
+      QuerySnapshot querySnapshot = await batches.get();
 
       List<Map<String, dynamic>> numbers = [];
-      for (QueryDocumentSnapshot doc in querySnapshot.docs) {
-        QuerySnapshot numberSnapshot = await doc.reference.collection('numbers')
-            .get();
-        for (QueryDocumentSnapshot numberDoc in numberSnapshot.docs) {
-          numbers.add({'batchNumber': numberDoc['batch_number'] as String});
-        }
+      for (var doc in querySnapshot.docs) {
+        numbers.add({
+          'batchNumber': doc.id,
+        });
       }
 
       setState(() {
-        print("got the data");
         print(numbers);
         batchNumbers = numbers;
       });
     } catch (e) {
-      print("Error fetching batch numbers: $e");
-      throw Exception('Failed to fetch batch numbers: $e');
+      print(e.toString());
     }
   }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -107,6 +131,7 @@ class _BatchWeightPageState extends State<BatchWeightPage> {
       ),
     );
   }
+
 
   Widget _buildTextInput(String labelText, TextEditingController controller,
       TextInputType keyboardType) {
@@ -192,7 +217,13 @@ class _BatchWeightPageState extends State<BatchWeightPage> {
       // Update the table
       setState(() {
         tableData.clear();
-        tableData = docSnapshot.data() as List<Map<String, dynamic>>;      });
+        var docData = docSnapshot.data();
+        if (docData is Map<String, dynamic>) {
+          tableData = [docData];
+        } else {
+          print('Invalid data format: $docData');
+        }
+      });
     } catch (e) {
       print(e.toString());
     }
