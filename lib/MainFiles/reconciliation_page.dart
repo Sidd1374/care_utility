@@ -28,6 +28,7 @@ class _MaterialReconciliationPageState extends State<MaterialReconciliationPage>
   void initState() {
     super.initState();
     initializeControllers();
+    initializeWeightList();
   }
 
   void initializeControllers() {
@@ -160,6 +161,22 @@ class _MaterialReconciliationPageState extends State<MaterialReconciliationPage>
     );
   }
 
+
+  void initializeWeightList() {
+    for (var material in materials) {
+      weightList.add({
+        'material': material,
+        'qtyReceived': '',
+        'fgReceived': '',
+        'totalRejection': '',
+        'qcControlSample': '',
+        'qtyUsed': '', // Qty. Used
+        'qtyReturned': '', // Qty. Returned
+        'percentRejection': '', // % Rejection
+      });
+    }
+  }
+
   Widget _buildWeightTable() {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
@@ -175,18 +192,18 @@ class _MaterialReconciliationPageState extends State<MaterialReconciliationPage>
           DataColumn(label: Text('% Rejection')),
         ],
         rows: List<DataRow>.generate(
-          materials.length,
+          weightList.length,
               (index) {
             return DataRow(
               cells: [
-                DataCell(Text(materials[index])),
-                DataCell(Text(controllers[index]['qtyReceived']?.text ?? '')),
-                DataCell(Text(controllers[index]['fgReceived']?.text ?? '')),
-                DataCell(Text(controllers[index]['totalRejection']?.text ?? '')),
-                DataCell(Text(controllers[index]['qcControlSample']?.text ?? '')),
-                DataCell(Text('')), // Qty. Used
-                DataCell(Text('')), // Qty. Returned
-                DataCell(Text('')), // % Rejection
+                DataCell(Text(weightList[index]['material'] ?? '')),
+                DataCell(Text(weightList[index]['qtyReceived'] ?? '')),
+                DataCell(Text(weightList[index]['fgReceived'] ?? '')),
+                DataCell(Text(weightList[index]['totalRejection'] ?? '')),
+                DataCell(Text(weightList[index]['qcControlSample'] ?? '')),
+                DataCell(Text(weightList[index]['qtyUsed'] ?? '')), // Qty. Used
+                DataCell(Text(weightList[index]['qtyReturned'] ?? '')), // Qty. Returned
+                DataCell(Text(weightList[index]['percentRejection'] ?? '')), // % Rejection
               ],
             );
           },
@@ -204,16 +221,35 @@ class _MaterialReconciliationPageState extends State<MaterialReconciliationPage>
           String totalRejection = controllers[i]['totalRejection']!.text;
           String qcControlSample = controllers[i]['qcControlSample']!.text;
 
-          weightList.add({
-            'material': materials[i],
-            'qtyReceived': qtyReceived,
-            'fgReceived': fgReceived,
-            'totalRejection': totalRejection,
-            'qcControlSample': qcControlSample,
-          });
+          // Check if the strings are valid integers before parsing
+          if (_isValidInteger(qtyReceived) && _isValidInteger(fgReceived) && _isValidInteger(totalRejection) && _isValidInteger(qcControlSample)) {
+            // Calculate the values
+            int qtyUsed = int.parse(fgReceived) + int.parse(totalRejection) + int.parse(qcControlSample);
+            int qtyReturned = int.parse(qtyReceived) - qtyUsed;
+            double percentRejection = (int.parse(totalRejection) * 100) / qtyUsed;
+
+            // Update the existing entry in the weightList
+            weightList[i] = {
+              'material': materials[i],
+              'qtyReceived': qtyReceived,
+              'fgReceived': fgReceived,
+              'totalRejection': totalRejection,
+              'qcControlSample': qcControlSample,
+              'qtyUsed': qtyUsed.toString(),
+              'qtyReturned': qtyReturned.toString(),
+              'percentRejection': percentRejection.toStringAsFixed(2) + '%', // to keep only two decimal places
+            };
+          } else {
+            // Handle the error
+            print('Invalid input');
+          }
         }
       });
     }
+  }
+
+  bool _isValidInteger(String str) {
+    return int.tryParse(str) != null;
   }
 
 }

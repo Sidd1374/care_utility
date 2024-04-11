@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../MainFiles/home_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:care_utility/archive/login_page.dart'as lg;
+import 'package:care_utility/archive/login_page.dart' as lg;
 
 class LoginPage extends StatefulWidget {
   const LoginPage({Key? key, required this.title}) : super(key: key);
@@ -25,8 +25,8 @@ class _LoginPageState extends State<LoginPage> {
 
   Future<void> _login() async {
     try {
-      final UserCredential userCredential = await FirebaseAuth.instance
-          .signInWithEmailAndPassword(
+      final UserCredential userCredential =
+          await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
       );
@@ -86,7 +86,6 @@ class _LoginPageState extends State<LoginPage> {
                       height: ScreenUtil().setHeight(200),
                     ),
                     SizedBox(height: ScreenUtil().setHeight(20)),
-
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -126,18 +125,18 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                       ],
                     ),
-
                     AnimatedCrossFade(
                       firstChild: _buildRegistrationForm(),
                       secondChild: _buildLoginForm(),
-                      crossFadeState: _isRegistering ? CrossFadeState.showFirst : CrossFadeState.showSecond,
+                      crossFadeState: _isRegistering
+                          ? CrossFadeState.showFirst
+                          : CrossFadeState.showSecond,
                       duration: const Duration(milliseconds: 100),
                       // onCompleted: () {
                       //   // Start animation after page transition is completed
                       //   // Add your animation controller forward here
                       // },
                     ),
-
                     SizedBox(height: ScreenUtil().setHeight(35)),
                   ],
                 ),
@@ -223,16 +222,17 @@ class _LoginPageState extends State<LoginPage> {
             child: TextButton(
               onPressed: () {
                 Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const lg.LoginPage(title: "login")),
-                    );
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => const lg.LoginPage(title: "login")),
+                );
               },
               child: const Text(
-              'Forgot Password?',
-              style: TextStyle(
-                color: Colors.blue,
-                fontWeight: FontWeight.bold,
-              ),
+                'Forgot Password?',
+                style: TextStyle(
+                  color: Colors.blue,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
           ),
