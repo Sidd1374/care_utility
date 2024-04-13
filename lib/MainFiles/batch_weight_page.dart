@@ -12,43 +12,13 @@ class _BatchWeightPageState extends State<BatchWeightPage> {
   TextEditingController netWeightController = TextEditingController();
   TextEditingController grossWeightController = TextEditingController();
   List<Map<String, dynamic>> batchNumbers = [];
-  List<Map<String, dynamic>> tableData = []; // Add this line
+  List<Map<String, dynamic>> tableData = [];
 
   @override
   void initState() {
     super.initState();
     fetchBatches();
   }
-
-  // Future<void> fetchBatchNumbers() async {
-  //   try {
-  //     QuerySnapshot querySnapshot = await FirebaseFirestore.instance
-  //         .collection('Care_utility_db')
-  //         .doc('dual_air_dev')
-  //         .collection('mgmt_record')
-  //         .doc('batch_info')
-  //         .collection('batches')
-  //         .get();
-  //
-  //     List<Map<String, dynamic>> numbers = [];
-  //     for (QueryDocumentSnapshot doc in querySnapshot.docs) {
-  //       QuerySnapshot numberSnapshot = await doc.reference.collection('numbers')
-  //           .get();
-  //       for (QueryDocumentSnapshot numberDoc in numberSnapshot.docs) {
-  //         numbers.add({'batchNumber': numberDoc['batch_number'] as String});
-  //       }
-  //     }
-  //
-  //     setState(() {
-  //       print("got the data");
-  //       print(numbers);
-  //       batchNumbers = numbers;
-  //     });
-  //   } catch (e) {
-  //     print("Error fetching batch numbers: $e");
-  //     throw Exception('Failed to fetch batch numbers: $e');
-  //   }
-  // }
 
   Future<void> fetchBatches() async {
     try {
@@ -64,14 +34,13 @@ class _BatchWeightPageState extends State<BatchWeightPage> {
       }
 
       setState(() {
-        print(numbers);
+        // print(numbers);
         batchNumbers = numbers;
       });
     } catch (e) {
       print(e.toString());
     }
   }
-
 
 
   @override
@@ -152,22 +121,20 @@ class _BatchWeightPageState extends State<BatchWeightPage> {
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            mainAxisSize: MainAxisSize.min, // add this line
+            mainAxisSize: MainAxisSize.min,
             children: [
               SizedBox(width: 80.h),
-
-              const Flexible( // replace Expanded with Flexible
-                fit: FlexFit.loose, // add this line
-                child:
-                Text(
+              const Flexible(
+                fit: FlexFit.loose,
+                child: Text(
                   'Weight Table',
                   textAlign: TextAlign.center,
                   style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
               ),
-              SizedBox(width: 70.h), // Add this line to add space
+              SizedBox(width: 70.h),
               IconButton(
-                icon: const Icon(Icons.refresh),
+                icon: Icon(Icons.refresh),
                 onPressed: () {
                   refreshTableData();
                 },
@@ -176,13 +143,13 @@ class _BatchWeightPageState extends State<BatchWeightPage> {
           ),
           DataTable(
             columns: const [
-              DataColumn(label: Text('Sr Number')),
+              DataColumn(label: Text('Index')), // Added DataColumn for Index
               DataColumn(label: Text('Net Weight')),
               DataColumn(label: Text('Gross Weight')),
             ],
             rows: tableData.map((row) => DataRow(
               cells: [
-                DataCell(Text(row['batchNumber'])),
+                DataCell(Text(row['index'])), // Display index here
                 DataCell(Text(row['netWeight'])),
                 DataCell(Text(row['grossWeight'])),
               ],
@@ -193,41 +160,70 @@ class _BatchWeightPageState extends State<BatchWeightPage> {
     );
   }
 
+
   Future<void> submitData(String batchNumber, Map<String, dynamic> data) async {
     try {
-      // Add data to Firebase
-      CollectionReference records = FirebaseFirestore.instance.collection('Care_utility_db/dual_air_dev/mgmt_record/records_data/weight_sheet/data');
-      await records.doc(batchNumber).set(data);
+      // Get a reference to the weight sheet collection for the specified batch number
+      CollectionReference weightSheetCollection = FirebaseFirestore.instance.collection('Care_utility_db/dual_air_dev/mgmt_record/records_data/batches/$batchNumber/weight_sheet');
+
+      // Get the current count of entries in the weight sheet
+      QuerySnapshot weightSheetSnapshot = await weightSheetCollection.get();
+      int currentIndex = weightSheetSnapshot.docs.length + 1;
+
+      // Create a new map entry with the current index as the key and netWeight and grossWeight as values
+      Map<String, dynamic> newData = {
+        'n_wght': data['netWeight'],
+        'g_wght': data['grossWeight'],
+      };
+
+      // Set the data in the weight sheet collection with the current index as the document ID
+      await weightSheetCollection.doc(currentIndex.toString()).set(newData);
 
       // Display data in the table
       setState(() {
-        tableData.add(data);
+        tableData.add({
+          'index': currentIndex.toString(),
+          'netWeight': data['netWeight'],
+          'grossWeight': data['grossWeight'],
+        });
       });
     } catch (e) {
       print(e.toString());
     }
   }
+
 
   Future<void> refreshTableData() async {
     try {
       // Get data from Firebase
-      DocumentReference docRef = FirebaseFirestore.instance.collection('Care_utility_db/dual_air_dev/mgmt_record/records_data/weight_sheet/data').doc(selectedBatchNumber);
-      DocumentSnapshot docSnapshot = await docRef.get();
+      CollectionReference weightSheetCollection = FirebaseFirestore.instance
+          .collection('Care_utility_db/dual_air_dev/mgmt_record/records_data/batches')
+          .doc(selectedBatchNumber)
+          .collection('weight_sheet');
+
+      QuerySnapshot querySnapshot = await weightSheetCollection.get();
 
       // Update the table
       setState(() {
         tableData.clear();
-        var docData = docSnapshot.data();
-        if (docData is Map<String, dynamic>) {
-          tableData = [docData];
-        } else {
-          print('Invalid data format: $docData');
+        for (var docSnapshot in querySnapshot.docs) {
+          var docData = docSnapshot.data();
+          if (docData != null && docData is Map<String, dynamic>) {
+            // Extract data from each document and add to tableData
+            tableData.add({
+              'index': docSnapshot.id,
+              'netWeight': docData['n_wght'] as String,
+              'grossWeight': docData['g_wght'] as String,
+            });
+          }
         }
+
       });
     } catch (e) {
       print(e.toString());
     }
   }
+
 
 
 }

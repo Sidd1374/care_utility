@@ -220,14 +220,12 @@ class _BatchRecordPageState extends State<BatchRecordPage> {
       padding: const EdgeInsets.all(20),
       child: ElevatedButton(
         onPressed: () async {
-          // Access Firestore instance
           CollectionReference batchInfoCollection = FirebaseFirestore.instance.collection('Care_utility_db').doc('dual_air_dev').collection('mgmt_record').doc('batch_info').collection('batches');
 
-          CollectionReference batchListCollection = FirebaseFirestore.instance.collection('Care_utility_db').doc('dual_air_dev').collection('mgmt_record').doc('batch_info').collection('batch_list');
+          CollectionReference recordsDataCollection = FirebaseFirestore.instance.collection('Care_utility_db').doc('dual_air_dev').collection('mgmt_record').doc('records_data').collection('batches');
 
           String batchnumber = batchNumberController.text;
 
-          // Prepare data to be added to Firestore
           Map<String, dynamic> batchData = {
             'batchNumber': batchNumberController.text,
             'commencementDate': commencementDateController.text,
@@ -236,42 +234,44 @@ class _BatchRecordPageState extends State<BatchRecordPage> {
             'selectedLine': selectedLineOption,
           };
 
-          // Add the data to Firestore
           batchInfoCollection.doc(batchnumber).set(batchData)
               .then((value) {
-            // Data added successfully
             print('Batch data added to Firestore.');
-            // You can add further actions or UI updates here if needed
           })
               .catchError((error) {
-            // Error occurred while adding data
             print('Error adding batch data to Firestore: $error');
-            // Handle the error or show a message to the user
           });
 
-          // Get the current count of documents in "numbers" collection
-          DocumentSnapshot documentSnapshot = await batchListCollection.doc('numbers').get();
-          int currentCount = documentSnapshot.exists ? (documentSnapshot.data()! as Map<String, dynamic>).length : 0;
-
-          // Add new serial number and batch number to "numbers" document in "batch_list" collection
-          batchListCollection.doc('numbers').set({
-            '${currentCount + 1}': batchNumberController.text, // Add batch number with new serial number
-          }, SetOptions(merge: true))
+          // Create weight sheet, dispensing sheet, and reconciliation sheet documents
+          recordsDataCollection.doc(batchnumber).collection('weight_sheet').doc('sheet').set({})
               .then((value) {
-            // Serial number and batch number added successfully
-            print('Serial number and batch number added to Firestore.');
-            // You can add further actions or UI updates here if needed
+            print('Weight sheet created for batch: $batchnumber');
           })
               .catchError((error) {
-            // Error occurred while adding serial number and batch number
-            print('Error adding serial number and batch number to Firestore: $error');
-            // Handle the error or show a message to the user
+            print('Error creating weight sheet for batch: $error');
+          });
+
+          recordsDataCollection.doc(batchnumber).collection('dispensing_sheet').doc('sheet').set({})
+              .then((value) {
+            print('Dispensing sheet created for batch: $batchnumber');
+          })
+              .catchError((error) {
+            print('Error creating dispensing sheet for batch: $error');
+          });
+
+          recordsDataCollection.doc(batchnumber).collection('reconciliation_sheet').doc('sheet').set({})
+              .then((value) {
+            print('Reconciliation sheet created for batch: $batchnumber');
+          })
+              .catchError((error) {
+            print('Error creating reconciliation sheet for batch: $error');
           });
         },
         child: const Text('Submit'),
       ),
     );
   }
+
 
 
 }

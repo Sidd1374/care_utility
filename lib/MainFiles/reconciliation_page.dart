@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class MaterialReconciliationPage extends StatefulWidget {
@@ -7,7 +8,8 @@ class MaterialReconciliationPage extends StatefulWidget {
       _MaterialReconciliationPageState();
 }
 
-class _MaterialReconciliationPageState extends State<MaterialReconciliationPage> {
+class _MaterialReconciliationPageState
+    extends State<MaterialReconciliationPage> {
   String? selectedOption;
   late List<Map<String, TextEditingController>> controllers;
   final List<String> materials = [
@@ -23,12 +25,16 @@ class _MaterialReconciliationPageState extends State<MaterialReconciliationPage>
   ];
 
   List<Map<String, String>> weightList = [];
+  List<Map<String, dynamic>> batchNumbers = [];
+  bool isLoading = false;
 
   @override
   void initState() {
     super.initState();
+    isLoading = true;
     initializeControllers();
     initializeWeightList();
+    fetchBatches();
   }
 
   void initializeControllers() {
@@ -43,31 +49,38 @@ class _MaterialReconciliationPageState extends State<MaterialReconciliationPage>
     );
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Reconciliation of Material'),
       ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              _buildDropDownMenu(),
-              SizedBox(height: 16.0),
-              Column(
-                children: _buildCards(),
+      body: Stack(
+        children: [
+          SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  _buildDropDownMenu(),
+                  SizedBox(height: 16.0),
+                  Column(
+                    children: _buildCards(),
+                  ),
+                  SizedBox(height: 16.0),
+                  _buildSubmitButton(),
+                  SizedBox(height: 16.0),
+                  _buildWeightTable(),
+                ],
               ),
-              SizedBox(height: 16.0),
-              _buildSubmitButton(),
-              SizedBox(height: 16.0),
-              _buildWeightTable(),
-            ],
+            ),
           ),
-        ),
+          if (isLoading)
+            Center(
+              child: CircularProgressIndicator(),
+            ),
+        ],
       ),
     );
   }
@@ -84,14 +97,10 @@ class _MaterialReconciliationPageState extends State<MaterialReconciliationPage>
   Widget _buildDropDownMenu() {
     return DropdownButtonFormField<String>(
       value: selectedOption,
-      items: [
-        'Option 1',
-        'Option 2',
-        'Option 3',
-      ].map((String option) {
+      items: batchNumbers.map((batch) {
         return DropdownMenuItem<String>(
-          value: option,
-          child: Text(option),
+          value: batch['batchNumber'],
+          child: Text(batch['batchNumber']),
         );
       }).toList(),
       onChanged: (String? newValue) {
@@ -161,7 +170,6 @@ class _MaterialReconciliationPageState extends State<MaterialReconciliationPage>
     );
   }
 
-
   void initializeWeightList() {
     for (var material in materials) {
       weightList.add({
@@ -178,43 +186,76 @@ class _MaterialReconciliationPageState extends State<MaterialReconciliationPage>
   }
 
   Widget _buildWeightTable() {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: DataTable(
-        columns: const [
-          DataColumn(label: Text('Material')),
-          DataColumn(label: Text('Qty. Received')),
-          DataColumn(label: Text('FG Received by Store')),
-          DataColumn(label: Text('Total Rejection')),
-          DataColumn(label: Text('QC+ Control Sample')),
-          DataColumn(label: Text('Qty. Used')),
-          DataColumn(label: Text('Qty. Returned')),
-          DataColumn(label: Text('% Rejection')),
-        ],
-        rows: List<DataRow>.generate(
-          weightList.length,
-              (index) {
-            return DataRow(
-              cells: [
-                DataCell(Text(weightList[index]['material'] ?? '')),
-                DataCell(Text(weightList[index]['qtyReceived'] ?? '')),
-                DataCell(Text(weightList[index]['fgReceived'] ?? '')),
-                DataCell(Text(weightList[index]['totalRejection'] ?? '')),
-                DataCell(Text(weightList[index]['qcControlSample'] ?? '')),
-                DataCell(Text(weightList[index]['qtyUsed'] ?? '')), // Qty. Used
-                DataCell(Text(weightList[index]['qtyReturned'] ?? '')), // Qty. Returned
-                DataCell(Text(weightList[index]['percentRejection'] ?? '')), // % Rejection
-              ],
-            );
-          },
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: Text(
+                'Reconciliation Table',
+                style: TextStyle(
+                  fontSize: 20.0,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            IconButton(
+              icon: Icon(Icons.refresh),
+              onPressed: () {
+                _refreshTableData();
+              },
+            ),
+          ],
         ),
-      ),
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: DataTable(
+            columns: const [
+              DataColumn(label: Text('Material')),
+              DataColumn(label: Text('Qty. Received')),
+              DataColumn(label: Text('FG Received by Store')),
+              DataColumn(label: Text('Total Rejection')),
+              DataColumn(label: Text('QC+ Control Sample')),
+              DataColumn(label: Text('Qty. Used')),
+              DataColumn(label: Text('Qty. Returned')),
+              DataColumn(label: Text('% Rejection')),
+            ],
+            rows: List<DataRow>.generate(
+              weightList.length,
+                  (index) {
+                return DataRow(
+                  cells: [
+                    DataCell(Text(weightList[index]['material'] ?? '')),
+                    DataCell(Text(weightList[index]['qtyReceived'] ?? '')),
+                    DataCell(Text(weightList[index]['fgReceived'] ?? '')),
+                    DataCell(Text(weightList[index]['totalRejection'] ?? '')),
+                    DataCell(Text(weightList[index]['qcControlSample'] ?? '')),
+                    DataCell(Text(weightList[index]['qtyUsed'] ?? '')),
+                    DataCell(Text(weightList[index]['qtyReturned'] ?? '')),
+                    DataCell(Text(weightList[index]['percentRejection'] ?? '')),
+                  ],
+                );
+              },
+            ),
+          ),
+        ),
+      ],
     );
   }
 
-  void _submitData() {
+  void _submitData() async {
     if (selectedOption != null) {
       setState(() {
+        isLoading = true;
+      });
+      try {
+        CollectionReference reconciliationSheetRef = FirebaseFirestore.instance.collection(
+          'Care_utility_db/dual_air_dev/mgmt_record/records_data/batches/$selectedOption/reconciliation_sheet',
+        );
+
         for (int i = 0; i < materials.length; i++) {
           String qtyReceived = controllers[i]['qtyReceived']!.text;
           String fgReceived = controllers[i]['fgReceived']!.text;
@@ -222,9 +263,13 @@ class _MaterialReconciliationPageState extends State<MaterialReconciliationPage>
           String qcControlSample = controllers[i]['qcControlSample']!.text;
 
           // Check if the strings are valid integers before parsing
-          if (_isValidInteger(qtyReceived) && _isValidInteger(fgReceived) && _isValidInteger(totalRejection) && _isValidInteger(qcControlSample)) {
+          if (_isValidInteger(qtyReceived) &&
+              _isValidInteger(fgReceived) &&
+              _isValidInteger(totalRejection) &&
+              _isValidInteger(qcControlSample)) {
             // Calculate the values
-            int qtyUsed = int.parse(fgReceived) + int.parse(totalRejection) + int.parse(qcControlSample);
+            int qtyUsed =
+                int.parse(fgReceived) + int.parse(totalRejection) + int.parse(qcControlSample);
             int qtyReturned = int.parse(qtyReceived) - qtyUsed;
             double percentRejection = (int.parse(totalRejection) * 100) / qtyUsed;
 
@@ -239,17 +284,123 @@ class _MaterialReconciliationPageState extends State<MaterialReconciliationPage>
               'qtyReturned': qtyReturned.toString(),
               'percentRejection': percentRejection.toStringAsFixed(2) + '%', // to keep only two decimal places
             };
+
+            // Upload the calculated data to Firestore
+            await reconciliationSheetRef.doc(materials[i]).set({
+              'qtyReceived': qtyReceived,
+              'fgReceived': fgReceived,
+              'totalRejection': totalRejection,
+              'qcControlSample': qcControlSample,
+              'qtyUsed': qtyUsed.toString(),
+              'qtyReturned': qtyReturned.toString(),
+              'percentRejection': percentRejection.toStringAsFixed(2) + '%',
+            });
           } else {
             // Handle the error
             print('Invalid input');
           }
         }
-      });
+
+        setState(() {
+          isLoading = false;
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Data submitted successfully!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+
+        // Refresh the table after submitting data
+        // _refreshTableData();
+      } catch (e) {
+        setState(() {
+          isLoading = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to submit data. Error: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 
+
+
   bool _isValidInteger(String str) {
     return int.tryParse(str) != null;
+  }
+
+  Future<void> _refreshTableData() async {
+    if (selectedOption != null) {
+      setState(() {
+        isLoading = true;
+      });
+      try {
+        CollectionReference reconciliationSheetRef =
+        FirebaseFirestore.instance.collection(
+            'Care_utility_db/dual_air_dev/mgmt_record/records_data/batches/$selectedOption/reconciliation_sheet');
+
+        QuerySnapshot querySnapshot = await reconciliationSheetRef.get();
+
+        setState(() {
+          weightList = querySnapshot.docs.map((doc) {
+            return {
+              'material': doc.id,
+              'qtyReceived': doc['qtyReceived'] != null ? doc['qtyReceived'].toString() : '',
+              'fgReceived': doc['fgReceived'] != null ? doc['fgReceived'].toString() : '',
+              'totalRejection': doc['totalRejection'] != null ? doc['totalRejection'].toString() : '',
+              'qcControlSample': doc['qcControlSample'] != null ? doc['qcControlSample'].toString() : '',
+              'qtyUsed': doc['qtyUsed'] != null ? doc['qtyUsed'].toString() : '',
+              'qtyReturned': doc['qtyReturned'] != null ? doc['qtyReturned'].toString() : '',
+              'percentRejection': doc['percentRejection'] != null ? doc['percentRejection'].toString() : '',
+            };
+          }).toList();
+          isLoading = false;
+        });
+      } catch (e) {
+        setState(() {
+          isLoading = false;
+        });
+        print('Error fetching data: $e');
+      }
+    } else {
+      print('No batch number selected');
+    }
+  }
+
+
+
+  Future<void> fetchBatches() async {
+    try {
+      CollectionReference batches = FirebaseFirestore.instance.collection(
+        'Care_utility_db/dual_air_dev/mgmt_record/batch_info/batches',
+      );
+      QuerySnapshot querySnapshot = await batches.get();
+
+      List<Map<String, String>> numbers = [];
+      for (var doc in querySnapshot.docs) {
+        numbers.add({
+          'batchNumber': doc.id,
+        });
+      }
+
+      setState(() {
+        batchNumbers = numbers;
+        if (numbers.isNotEmpty) {
+          selectedOption = numbers[0]['batchNumber']; // Set selectedOption to the first batch number
+        }
+        isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        isLoading = false;
+      });
+      print(e.toString());
+    }
   }
 
 }

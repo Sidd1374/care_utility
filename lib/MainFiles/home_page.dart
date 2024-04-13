@@ -1,14 +1,9 @@
-import 'package:care_utility/MainFiles/test_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-// import '../archive/batch_record.dart';
 import 'batch_record_page.dart';
 import 'reconciliation_page.dart';
 import 'batch_weight_page.dart';
-// import 'package:care_utility/try/trry.dart';
-import '../try/try_file2.dart';
-// import '../try/try_file.dart';
-
+import 'dispensing_page.dart';
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
 
@@ -64,8 +59,8 @@ class _HomePageState extends State<HomePage> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                            // builder: (context) => MaterialDispensingPage()),
-                            builder: (context) => TestScreen()),
+                            builder: (context) => MaterialDispensingPage()),
+                            // builder: (context) => TestScreen()),
                       );
                     },
                   ),
