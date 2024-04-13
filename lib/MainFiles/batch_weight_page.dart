@@ -13,6 +13,7 @@ class _BatchWeightPageState extends State<BatchWeightPage> {
   TextEditingController grossWeightController = TextEditingController();
   List<Map<String, dynamic>> batchNumbers = [];
   List<Map<String, dynamic>> tableData = [];
+  bool isLoading = false;
 
   @override
   void initState() {
@@ -21,9 +22,12 @@ class _BatchWeightPageState extends State<BatchWeightPage> {
   }
 
   Future<void> fetchBatches() async {
+    setState(() {
+      isLoading = true; // Start loading indicator
+    });
     try {
-      CollectionReference batches = FirebaseFirestore.instance.collection('Care_utility_db/dual_air_dev/mgmt_record/batch_info/batches');
-      // QuerySnapshot querySnapshot = await batches.orderBy('timestamp', descending: true).limit(5).get();
+      CollectionReference batches =
+      FirebaseFirestore.instance.collection('Care_utility_db/dual_air_dev/mgmt_record/batch_info/batches');
       QuerySnapshot querySnapshot = await batches.get();
 
       List<Map<String, dynamic>> numbers = [];
@@ -34,14 +38,16 @@ class _BatchWeightPageState extends State<BatchWeightPage> {
       }
 
       setState(() {
-        // print(numbers);
         batchNumbers = numbers;
+        isLoading = false; // Stop loading indicator after fetching data
       });
     } catch (e) {
+      setState(() {
+        isLoading = false; // Stop loading indicator in case of error
+      });
       print(e.toString());
     }
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -64,16 +70,33 @@ class _BatchWeightPageState extends State<BatchWeightPage> {
                 'Gross Weight:', grossWeightController, TextInputType.number),
             SizedBox(height: 10.h),
             ElevatedButton(
-              onPressed: () {
+              onPressed: isLoading ? null : () {
                 submitData(selectedBatchNumber!, {
                   'netWeight': netWeightController.text,
                   'grossWeight': grossWeightController.text,
                 });
               },
-              child: Text('Submit'),
+              child: isLoading
+                  ? SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                ),
+              )
+                  : Text('Submit'),
             ),
             SizedBox(height: 20.h),
-            _buildWeightTable(),
+            Visibility(
+              visible: !isLoading, // Hide when loading
+              child: _buildWeightTable(),
+            ),
+            Visibility(
+              visible: isLoading, // Show only when loading
+              child: Center(
+                child: CircularProgressIndicator(), // Show loading indicator
+              ),
+            ),
           ],
         ),
       ),
@@ -100,7 +123,6 @@ class _BatchWeightPageState extends State<BatchWeightPage> {
       ),
     );
   }
-
 
   Widget _buildTextInput(String labelText, TextEditingController controller,
       TextInputType keyboardType) {
@@ -135,9 +157,7 @@ class _BatchWeightPageState extends State<BatchWeightPage> {
               SizedBox(width: 70.h),
               IconButton(
                 icon: Icon(Icons.refresh),
-                onPressed: () {
-                  refreshTableData();
-                },
+                onPressed: isLoading ? null : refreshTableData, // Disable refresh button when loading
               ),
             ],
           ),
@@ -160,56 +180,55 @@ class _BatchWeightPageState extends State<BatchWeightPage> {
     );
   }
 
-
   Future<void> submitData(String batchNumber, Map<String, dynamic> data) async {
+    setState(() {
+      isLoading = true; // Start loading indicator
+    });
     try {
-      // Get a reference to the weight sheet collection for the specified batch number
-      CollectionReference weightSheetCollection = FirebaseFirestore.instance.collection('Care_utility_db/dual_air_dev/mgmt_record/records_data/batches/$batchNumber/weight_sheet');
+      CollectionReference weightSheetCollection = FirebaseFirestore.instance
+          .collection('Care_utility_db/dual_air_dev/mgmt_record/records_data/batches/$batchNumber/weight_sheet');
 
-      // Get the current count of entries in the weight sheet
       QuerySnapshot weightSheetSnapshot = await weightSheetCollection.get();
       int currentIndex = weightSheetSnapshot.docs.length + 1;
 
-      // Create a new map entry with the current index as the key and netWeight and grossWeight as values
       Map<String, dynamic> newData = {
         'n_wght': data['netWeight'],
         'g_wght': data['grossWeight'],
       };
 
-      // Set the data in the weight sheet collection with the current index as the document ID
       await weightSheetCollection.doc(currentIndex.toString()).set(newData);
 
-      // Display data in the table
       setState(() {
         tableData.add({
           'index': currentIndex.toString(),
           'netWeight': data['netWeight'],
           'grossWeight': data['grossWeight'],
         });
+        isLoading = false; // Stop loading indicator after data submission
       });
     } catch (e) {
+      setState(() {
+        isLoading = false; // Stop loading indicator in case of error
+      });
       print(e.toString());
     }
   }
 
-
   Future<void> refreshTableData() async {
+    setState(() {
+      isLoading = true; // Start loading indicator
+    });
     try {
-      // Get data from Firebase
       CollectionReference weightSheetCollection = FirebaseFirestore.instance
-          .collection('Care_utility_db/dual_air_dev/mgmt_record/records_data/batches')
-          .doc(selectedBatchNumber)
-          .collection('weight_sheet');
+          .collection('Care_utility_db/dual_air_dev/mgmt_record/records_data/batches/$selectedBatchNumber/weight_sheet');
 
       QuerySnapshot querySnapshot = await weightSheetCollection.get();
 
-      // Update the table
       setState(() {
         tableData.clear();
         for (var docSnapshot in querySnapshot.docs) {
           var docData = docSnapshot.data();
           if (docData != null && docData is Map<String, dynamic>) {
-            // Extract data from each document and add to tableData
             tableData.add({
               'index': docSnapshot.id,
               'netWeight': docData['n_wght'] as String,
@@ -217,13 +236,13 @@ class _BatchWeightPageState extends State<BatchWeightPage> {
             });
           }
         }
-
+        isLoading = false; // Stop loading indicator after data refresh
       });
     } catch (e) {
+      setState(() {
+        isLoading = false; // Stop loading indicator in case of error
+      });
       print(e.toString());
     }
   }
-
-
-
 }

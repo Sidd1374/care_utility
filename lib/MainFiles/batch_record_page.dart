@@ -12,6 +12,8 @@ class _BatchRecordPageState extends State<BatchRecordPage> {
   TextEditingController completionDateController = TextEditingController();
 
   bool completionDateSameAsCommencement = false;
+  bool isLoading = false;
+  bool isSubmitted = false;
 
   final firestore = FirebaseFirestore.instance;
 
@@ -60,41 +62,64 @@ class _BatchRecordPageState extends State<BatchRecordPage> {
       appBar: AppBar(
         title: const Text('Batch Management Record'),
       ),
-      body: Container(
-        width: 411,
-        height: 890,
-        color: const Color.fromRGBO(255, 255, 255, 1),
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: <Widget>[
-              _buildHeaderText('Enter Data'),
-              _buildTextInput('Batch Number:', batchNumberController),
-              _buildDateInput('Date of Commencement:', commencementDateController, _selectCommencementDate),
-              _buildDateInput('Date of Completion:', completionDateController, _selectCompletionDate),
-              _buildCheckBoxButton('Completion date same as commencement', completionDateSameAsCommencement, () {
-                setState(() {
-                  completionDateSameAsCommencement = !completionDateSameAsCommencement;
-                });
-              }),
-              _buildHeaderText('Shift:'),
-              _buildOptionsRow(['A', 'B', 'C'], selectedShiftOption, (option) {
-                setState(() {
-                  selectedShiftOption = option;
-                });
-              }),
+      body: Stack(
+        children: [
+          Container(
+            width: 411,
+            height: 890,
+            color: const Color.fromRGBO(255, 255, 255, 1),
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: <Widget>[
+                  _buildHeaderText('Enter Data'),
+                  _buildTextInput('Batch Number:', batchNumberController),
+                  _buildDateInput('Date of Commencement:', commencementDateController, _selectCommencementDate),
+                  _buildDateInput('Date of Completion:', completionDateController, _selectCompletionDate),
+                  _buildCheckBoxButton('Completion date same as commencement', completionDateSameAsCommencement, () {
+                    setState(() {
+                      completionDateSameAsCommencement = !completionDateSameAsCommencement;
+                    });
+                  }),
+                  _buildHeaderText('Shift:'),
+                  _buildOptionsRow(['A', 'B', 'C'], selectedShiftOption, (option) {
+                    setState(() {
+                      selectedShiftOption = option;
+                    });
+                  }),
 
-              _buildHeaderText('Line No:'),
-              _buildOptionsRow(['1', '2', '3'], selectedLineOption, (option) {
-                setState(() {
-                  selectedLineOption = option;
-                });
-              }),
+                  _buildHeaderText('Line No:'),
+                  _buildOptionsRow(['1', '2', '3'], selectedLineOption, (option) {
+                    setState(() {
+                      selectedLineOption = option;
+                    });
+                  }),
 
-              _buildSubmitButton(),
-            ],
+                  _buildSubmitButton(),
+                ],
+              ),
+            ),
           ),
-        ),
+          if (isLoading) CircularProgressIndicator(), // Loading indicator
+          if (isSubmitted) // Success bar
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              child: Container(
+                color: Colors.green,
+                padding: EdgeInsets.all(8),
+                child: Text(
+                  'Data submitted successfully!',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }
@@ -220,6 +245,10 @@ class _BatchRecordPageState extends State<BatchRecordPage> {
       padding: const EdgeInsets.all(20),
       child: ElevatedButton(
         onPressed: () async {
+          setState(() {
+            isLoading = true; // Show loading indicator
+          });
+
           CollectionReference batchInfoCollection = FirebaseFirestore.instance.collection('Care_utility_db').doc('dual_air_dev').collection('mgmt_record').doc('batch_info').collection('batches');
 
           CollectionReference recordsDataCollection = FirebaseFirestore.instance.collection('Care_utility_db').doc('dual_air_dev').collection('mgmt_record').doc('records_data').collection('batches');
@@ -237,9 +266,17 @@ class _BatchRecordPageState extends State<BatchRecordPage> {
           batchInfoCollection.doc(batchnumber).set(batchData)
               .then((value) {
             print('Batch data added to Firestore.');
+            setState(() {
+              isLoading = false; // Hide loading indicator
+              isSubmitted = true; // Show success bar
+            });
           })
               .catchError((error) {
             print('Error adding batch data to Firestore: $error');
+            setState(() {
+              isLoading = false; // Hide loading indicator
+              isSubmitted = false; // Hide success bar
+            });
           });
 
           // Create weight sheet, dispensing sheet, and reconciliation sheet documents
@@ -271,7 +308,4 @@ class _BatchRecordPageState extends State<BatchRecordPage> {
       ),
     );
   }
-
-
-
 }

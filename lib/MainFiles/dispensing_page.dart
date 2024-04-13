@@ -6,6 +6,7 @@ class MaterialDispensingPage extends StatefulWidget {
   @override
   _MaterialDispensingPageState createState() => _MaterialDispensingPageState();
 }
+
 class _MaterialDispensingPageState extends State<MaterialDispensingPage> {
   String? selectedOption;
   late List<Map<String, TextEditingController>> controllers;
@@ -35,6 +36,7 @@ class _MaterialDispensingPageState extends State<MaterialDispensingPage> {
 
   List<Map<String, String>> dispensedList = [];
   List<Map<String, dynamic>> batchNumbers = [];
+  bool isLoading = false;
 
   @override
   void initState() {
@@ -45,8 +47,12 @@ class _MaterialDispensingPageState extends State<MaterialDispensingPage> {
 
   // Fetch batch numbers from Firestore
   Future<void> fetchBatches() async {
+    setState(() {
+      isLoading = true; // Start loading indicator
+    });
     try {
-      CollectionReference batches = FirebaseFirestore.instance.collection('Care_utility_db/dual_air_dev/mgmt_record/batch_info/batches');
+      CollectionReference batches =
+      FirebaseFirestore.instance.collection('Care_utility_db/dual_air_dev/mgmt_record/batch_info/batches');
       QuerySnapshot querySnapshot = await batches.get();
 
       List<Map<String, dynamic>> numbers = [];
@@ -58,8 +64,12 @@ class _MaterialDispensingPageState extends State<MaterialDispensingPage> {
 
       setState(() {
         batchNumbers = numbers;
+        isLoading = false; // Stop loading indicator after fetching data
       });
     } catch (e) {
+      setState(() {
+        isLoading = false; // Stop loading indicator in case of error
+      });
       print(e.toString());
     }
   }
@@ -90,13 +100,26 @@ class _MaterialDispensingPageState extends State<MaterialDispensingPage> {
             children: [
               _buildDropDownMenu(),
               SizedBox(height: 16.0),
-              Column(
-                children: _buildCards(),
+              Visibility(
+                visible: !isLoading, // Hide when loading
+                child: Column(
+                  children: [
+                    Column(
+                      children: _buildCards(),
+                    ),
+                    SizedBox(height: 16.0),
+                    _buildSubmitButton(),
+                    SizedBox(height: 16.0),
+                    _buildDispensedTable(),
+                  ],
+                ),
               ),
-              SizedBox(height: 16.0),
-              _buildSubmitButton(),
-              SizedBox(height: 16.0),
-              _buildDispensedTable(),
+              Visibility(
+                visible: isLoading, // Show only when loading
+                child: Center(
+                  child: CircularProgressIndicator(), // Show loading indicator
+                ),
+              ),
             ],
           ),
         ),
@@ -127,16 +150,14 @@ class _MaterialDispensingPageState extends State<MaterialDispensingPage> {
   }
 
   // Build cards for materials
-  // Build cards for materials
   List<Widget> _buildCards() {
     List<Widget> cards = [];
     for (var i = 0; i < materials.length; i++) {
-      cards.add(_buildCard(materials[i], mat_desc[i])); // Pass material and description to the card
+      cards.add(_buildCard(materials[i], mat_desc[i]));
       cards.add(const SizedBox(height: 16.0));
     }
     return cards;
   }
-
 
   // Build a card for a material
   Widget _buildCard(String material, String desc) {
@@ -155,14 +176,6 @@ class _MaterialDispensingPageState extends State<MaterialDispensingPage> {
                 fontWeight: FontWeight.bold,
               ),
             ),
-            // SizedBox(height: 16.0),
-            // Text(
-            //   desc,
-            //   style: TextStyle(
-            //     fontSize: 14.0,
-            //     fontWeight: FontWeight.bold,
-            //   ),
-            // ),
             const SizedBox(height: 8.0),
             TextField(
               controller: controllers[index]['AR. No'],
@@ -187,13 +200,19 @@ class _MaterialDispensingPageState extends State<MaterialDispensingPage> {
     );
   }
 
-  // Build submit button
+  // Build submit button with loading indicator
   Widget _buildSubmitButton() {
     return ElevatedButton(
-      onPressed: () {
-        _submitData();
-      },
-      child: Text('Submit'),
+      onPressed: isLoading ? null : _submitData, // Disable button when loading
+      child: isLoading
+          ? SizedBox(
+        width: 24,
+        height: 24,
+        child: CircularProgressIndicator(
+          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+        ),
+      )
+          : Text('Submit'),
     );
   }
 
@@ -208,8 +227,7 @@ class _MaterialDispensingPageState extends State<MaterialDispensingPage> {
             SizedBox(width: 50.h),
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 16.0),
-              child:
-              Text(
+              child: Text(
                 'Dispensed Materials',
                 style: TextStyle(
                   fontSize: 20.0,
@@ -219,9 +237,7 @@ class _MaterialDispensingPageState extends State<MaterialDispensingPage> {
             ),
             IconButton(
               icon: Icon(Icons.refresh),
-              onPressed: () {
-                _refreshTableData();
-              },
+              onPressed: isLoading ? null : _refreshTableData, // Disable refresh button when loading
             ),
           ],
         ),
@@ -256,29 +272,28 @@ class _MaterialDispensingPageState extends State<MaterialDispensingPage> {
   // Submit data
   void _submitData() async {
     if (selectedOption != null) {
+      setState(() {
+        isLoading = true; // Start loading indicator
+      });
       try {
-        // Reference to the batch's dispensing sheet collection
-        CollectionReference dispensingSheetRef = FirebaseFirestore.instance.collection('Care_utility_db/dual_air_dev/mgmt_record/records_data/batches/$selectedOption/dispensing_sheet');
+        CollectionReference dispensingSheetRef = FirebaseFirestore.instance
+            .collection('Care_utility_db/dual_air_dev/mgmt_record/records_data/batches/$selectedOption/dispensing_sheet');
 
-        // Loop through each material and save its data
         for (int i = 0; i < materials.length; i++) {
           String material = materials[i];
           String arNo = controllers[i]['AR. No']!.text;
           String stdQty = controllers[i]['STD Qty']!.text;
           String actualQty = controllers[i]['Actual Qty']!.text;
 
-          // Check if document already exists for the material
           DocumentSnapshot materialDoc = await dispensingSheetRef.doc(material).get();
 
           if (materialDoc.exists) {
-            // If document exists, update its fields
             await dispensingSheetRef.doc(material).update({
               'AR No': arNo,
               'STD Qty': stdQty,
               'Actual Qty': actualQty,
             });
           } else {
-            // If document doesn't exist, create a new document
             await dispensingSheetRef.doc(material).set({
               'AR No': arNo,
               'STD Qty': stdQty,
@@ -287,10 +302,12 @@ class _MaterialDispensingPageState extends State<MaterialDispensingPage> {
           }
         }
 
-        // Clear the dispensedList after submitting the data
+        setState(() {
+          isLoading = false; // Stop loading indicator after data submission
+        });
+
         dispensedList.clear();
 
-        // Show a success message
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Data submitted successfully!'),
@@ -298,7 +315,9 @@ class _MaterialDispensingPageState extends State<MaterialDispensingPage> {
           ),
         );
       } catch (e) {
-        // Show an error message if submission fails
+        setState(() {
+          isLoading = false; // Stop loading indicator in case of error
+        });
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Failed to submit data. Error: $e'),
@@ -309,10 +328,15 @@ class _MaterialDispensingPageState extends State<MaterialDispensingPage> {
     }
   }
 
+  // Refresh table data
   Future<void> _refreshTableData() async {
     if (selectedOption != null) {
+      setState(() {
+        isLoading = true; // Start loading indicator
+      });
       try {
-        CollectionReference dispensingSheetRef = FirebaseFirestore.instance.collection('Care_utility_db/dual_air_dev/mgmt_record/records_data/batches/$selectedOption/dispensing_sheet');
+        CollectionReference dispensingSheetRef = FirebaseFirestore.instance
+            .collection('Care_utility_db/dual_air_dev/mgmt_record/records_data/batches/$selectedOption/dispensing_sheet');
 
         QuerySnapshot querySnapshot = await dispensingSheetRef.get();
 
@@ -325,7 +349,6 @@ class _MaterialDispensingPageState extends State<MaterialDispensingPage> {
           },
         );
 
-        // Iterate over each document and update controllers
         querySnapshot.docs.forEach((doc) {
           String material = doc.id;
           Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
@@ -339,7 +362,6 @@ class _MaterialDispensingPageState extends State<MaterialDispensingPage> {
           }
         });
 
-        // Update the state to trigger UI refresh
         setState(() {
           controllers = updatedControllers.map((data) {
             return {
@@ -348,9 +370,12 @@ class _MaterialDispensingPageState extends State<MaterialDispensingPage> {
               'Actual Qty': TextEditingController(text: data['Actual Qty']),
             };
           }).toList();
+          isLoading = false; // Stop loading indicator after data refresh
         });
-
       } catch (e) {
+        setState(() {
+          isLoading = false; // Stop loading indicator in case of error
+        });
         print(e.toString());
       }
     } else {

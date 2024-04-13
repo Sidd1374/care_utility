@@ -1,8 +1,9 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../MainFiles/home_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:care_utility/archive/login_page.dart'as lg;
+
 
 class LoginPage extends StatefulWidget {
   const LoginPage({Key? key, required this.title}) : super(key: key);
@@ -18,6 +19,7 @@ class _LoginPageState extends State<LoginPage> {
   final GlobalKey<FormState> _registrationFormKey = GlobalKey<FormState>();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _nameController = TextEditingController(); // Added
 
   bool _isRegistering = false;
   bool _isPasswordVisible = false;
@@ -214,28 +216,17 @@ class _LoginPageState extends State<LoginPage> {
           SizedBox(height: ScreenUtil().setHeight(20)),
           TextButton(
             onPressed: () {
-              // Implement your reset password logic here
-              // Navigator.push(
-              //   context,
-              //   MaterialPageRoute(builder: (context) => const ProfilePage()),
-              // );
+              _resetPassword(); // Call the reset password function when the button is pressed
             },
-            child: TextButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const lg.LoginPage(title: "login")),
-                );
-              },
-              child: const Text(
-                'Forgot Password?',
-                style: TextStyle(
-                  color: Colors.blue,
-                  fontWeight: FontWeight.bold,
-                ),
+            child: const Text(
+              'Forgot Password?',
+              style: TextStyle(
+                color: Colors.blue,
+                fontWeight: FontWeight.bold,
               ),
             ),
           ),
+
         ],
       ),
     );
@@ -247,21 +238,30 @@ class _LoginPageState extends State<LoginPage> {
       child: Column(
         children: [
           TextFormField(
+            controller: _nameController, // Add controller for name field
             decoration: const InputDecoration(
               labelText: 'Name',
               hintText: 'Enter your name',
               prefixIcon: Icon(Icons.person),
               border: OutlineInputBorder(),
             ),
+            validator: (value) {
+              if (value!.isEmpty) {
+                return 'Please enter your name';
+              }
+              return null;
+            },
           ),
           SizedBox(height: ScreenUtil().setHeight(10)),
           TextFormField(
+            controller: _emailController,
             decoration: const InputDecoration(
               labelText: 'Email',
               hintText: 'Enter your email',
               prefixIcon: Icon(Icons.email),
               border: OutlineInputBorder(),
             ),
+            // Validation logic...
           ),
           SizedBox(height: ScreenUtil().setHeight(10)),
           DropdownButtonFormField<String>(
@@ -287,11 +287,12 @@ class _LoginPageState extends State<LoginPage> {
           ),
           SizedBox(height: ScreenUtil().setHeight(10)),
           TextFormField(
+            controller: _passwordController,
             decoration: InputDecoration(
               labelText: 'Password',
               hintText: 'Enter your password',
-              prefixIcon: const Icon(Icons.lock),
-              border: const OutlineInputBorder(),
+              prefixIcon: Icon(Icons.lock),
+              border: OutlineInputBorder(),
               suffixIcon: IconButton(
                 icon: Icon(
                   _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
@@ -304,14 +305,20 @@ class _LoginPageState extends State<LoginPage> {
               ),
             ),
             obscureText: !_isPasswordVisible,
+            validator: (value) {
+              if (value!.isEmpty) {
+                return 'Please enter your password';
+              }
+              return null;
+            },
           ),
           SizedBox(height: ScreenUtil().setHeight(10)),
           TextFormField(
             decoration: InputDecoration(
               labelText: 'Confirm Password',
               hintText: 'Confirm your password',
-              prefixIcon: const Icon(Icons.lock),
-              border: const OutlineInputBorder(),
+              prefixIcon: Icon(Icons.lock),
+              border: OutlineInputBorder(),
               suffixIcon: IconButton(
                 icon: Icon(
                   _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
@@ -324,6 +331,15 @@ class _LoginPageState extends State<LoginPage> {
               ),
             ),
             obscureText: !_isPasswordVisible,
+            validator: (value) {
+              if (value!.isEmpty) {
+                return 'Please confirm your password';
+              }
+              if (value != _passwordController.text) {
+                return 'Passwords do not match';
+              }
+              return null;
+            },
           ),
           SizedBox(height: ScreenUtil().setHeight(20)),
           ElevatedButton(
@@ -341,11 +357,116 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  void _register() {
-    // Implement registration logic here
-    // For now, just toggle the form
-    setState(() {
-      _isRegistering = false;
-    });
+
+  void _register() async {
+    // Implement registration logic
+    String name = _nameController.text.trim(); // Retrieve name from controller
+    String email = _emailController.text.trim();
+    String password = _passwordController.text.trim();
+    String role = _selectedRole ?? '';
+
+    if (name.isNotEmpty && email.isNotEmpty && password.isNotEmpty && role.isNotEmpty) {
+      try {
+        // Register user with Firebase Authentication
+        UserCredential userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
+          email: email,
+          password: password,
+        );
+
+        // Access Firestore instance
+        FirebaseFirestore firestore = FirebaseFirestore.instance;
+
+        // Determine the collection based on the selected role
+        String collectionName = role == 'Manager' ? 'managers' : 'employees';
+
+        // Create a reference to the 'users' collection
+        CollectionReference usersCollection = firestore.collection('Care_utility_db').doc('user').collection(collectionName);
+
+        // Create a document for the user with their email as the document ID
+        usersCollection.doc(email).set({
+          'name': name,
+          'email': email,
+          'role': role,
+        }).then((_) {
+          // Display a success message to the user
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Registration successful'),
+              duration: Duration(seconds: 2),
+            ),
+          );
+
+          // Reset the registration form
+          _registrationFormKey.currentState!.reset();
+          _selectedRole = null;
+
+          setState(() {
+            _isRegistering = false; // Switch back to login form
+          });
+        }).catchError((error) {
+          // Handle registration error
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Registration failed: $error'),
+              duration: Duration(seconds: 2),
+            ),
+          );
+        });
+      } catch (error) {
+        // Handle registration error with Firebase Authentication
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Registration failed: $error'),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+    } else {
+      // Show an error message if any field is empty
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please fill in all fields'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+    }
   }
+
+  void _resetPassword() {
+    String email = _emailController.text.trim();
+
+    if (email.isNotEmpty) {
+      FirebaseAuth.instance.sendPasswordResetEmail(email: email)
+          .then((_) {
+        // Show a success message to the user
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Password reset email sent to $email'),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      })
+          .catchError((error) {
+        // Show an error message if password reset fails
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to send password reset email: $error'),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      });
+    } else {
+      // Show an error message if the email field is empty
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please enter your email'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+    }
+  }
+
+
+
+
 }
