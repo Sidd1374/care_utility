@@ -15,7 +15,7 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
-    ScreenUtil.init(context, designSize: Size(411, 890), minTextAdapt: true);
+    ScreenUtil.init(context, designSize: const Size(411, 890), minTextAdapt: true);
 
 
     return Scaffold(
@@ -33,9 +33,6 @@ class _HomePageState extends State<HomePage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            // SizedBox(
-            //   height: 20.h,
-            // ),
             Image(
               image: const AssetImage('assets/imgs/cu_logo_rmvbg.png'),
               width: ScreenUtil().setWidth(250),
@@ -68,40 +65,38 @@ class _HomePageState extends State<HomePage> {
                   ),
                   ),
                   _buildButton(
-                    'Material Dispensing',
+                    'Material\nDispensing',
                     () {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
                             builder: (context) => MaterialDispensingPage()),
-                            // builder: (context) => TestScreen()),
                       );
                     },const Icon(Icons.table_chart_rounded,
                     size: 40,
                     color: Colors.white,),
                   ),
                   _buildButton(
-                    'Update Weight',
+                    'Update\nWeight',
                     () {
-                      // Navigator.pushNamed(context, "");
                       Navigator.push(
                         context,
                         MaterialPageRoute(
                             builder: (context) => BatchWeightPage()),
                       );
-                    },const Icon(CupertinoIcons.archivebox_fill,
+                    },const Icon(Icons.warehouse_rounded,
                     size: 40,
                     color: Colors.white,),
                   ),
                   _buildButton(
-                    'Material Reconciliation',
+                    'Material\nReconciliation',
                     () {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
                             builder: (context) => MaterialReconciliationPage()),
                       );
-                    },const Icon(Icons.file_present_rounded,
+                    },const Icon(Icons.file_copy_rounded,
                     size: 40,
                     color: Colors.white,),
                   ),
@@ -110,7 +105,7 @@ class _HomePageState extends State<HomePage> {
             ),
             const SizedBox(
                 height:
-                    20), // Add some space between the grid view and the text
+                    20),
           ],
         ),
       ),
@@ -118,6 +113,8 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildButton(String label, VoidCallback onPressed, Icon icon) {
+    double buttonFontSize = MediaQuery.of(context).size.width * 0.04; // Adjust as needed
+
     return ElevatedButton(
       onPressed: onPressed,
       style: ElevatedButton.styleFrom(
@@ -130,15 +127,15 @@ class _HomePageState extends State<HomePage> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           icon,
-          SizedBox(height: 8), // Adjusted space between icon and text
+          const SizedBox(height: 8),
           Text(
             label,
             textAlign: TextAlign.center,
-            style: const TextStyle(
+            style: TextStyle(
               color: Colors.white,
               fontFamily: 'Inter',
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
+              fontSize: buttonFontSize,
+              fontWeight: FontWeight.w500,
             ),
           ),
         ],
@@ -146,22 +143,11 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+
   Widget _buildText() {
     return const Column(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        // Text(
-        //   'Welcome to ',
-        //   textAlign: TextAlign.center,
-        //   style: TextStyle(
-        //     color: Color.fromRGBO(0, 0, 0, 1),
-        //     fontFamily: 'Inter',
-        //     fontSize: 32, // Removed ScreenUtil usage for font size
-        //     letterSpacing: 0,
-        //     fontWeight: FontWeight.normal,
-        //     height: 1,
-        //   ),
-        // ),
         Text(
           'Production Manager',
           textAlign: TextAlign.center,

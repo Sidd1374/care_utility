@@ -291,8 +291,8 @@ class _LoginPageState extends State<LoginPage> {
             decoration: InputDecoration(
               labelText: 'Password',
               hintText: 'Enter your password',
-              prefixIcon: Icon(Icons.lock),
-              border: OutlineInputBorder(),
+              prefixIcon: const Icon(Icons.lock),
+              border: const OutlineInputBorder(),
               suffixIcon: IconButton(
                 icon: Icon(
                   _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
@@ -317,8 +317,8 @@ class _LoginPageState extends State<LoginPage> {
             decoration: InputDecoration(
               labelText: 'Confirm Password',
               hintText: 'Confirm your password',
-              prefixIcon: Icon(Icons.lock),
-              border: OutlineInputBorder(),
+              prefixIcon: const Icon(Icons.lock),
+              border: const OutlineInputBorder(),
               suffixIcon: IconButton(
                 icon: Icon(
                   _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
@@ -390,7 +390,7 @@ class _LoginPageState extends State<LoginPage> {
         }).then((_) {
           // Display a success message to the user
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
+            const SnackBar(
               content: Text('Registration successful'),
               duration: Duration(seconds: 2),
             ),
@@ -408,7 +408,7 @@ class _LoginPageState extends State<LoginPage> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('Registration failed: $error'),
-              duration: Duration(seconds: 2),
+              duration: const Duration(seconds: 2),
             ),
           );
         });
@@ -417,7 +417,7 @@ class _LoginPageState extends State<LoginPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Registration failed: $error'),
-            duration: Duration(seconds: 2),
+            duration: const Duration(seconds: 2),
           ),
         );
       }
@@ -442,7 +442,7 @@ class _LoginPageState extends State<LoginPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Password reset email sent to $email'),
-            duration: Duration(seconds: 2),
+            duration: const Duration(seconds: 2),
           ),
         );
       })
@@ -451,7 +451,7 @@ class _LoginPageState extends State<LoginPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Failed to send password reset email: $error'),
-            duration: Duration(seconds: 2),
+            duration: const Duration(seconds: 2),
           ),
         );
       });

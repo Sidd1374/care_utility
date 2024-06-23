@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class MaterialReconciliationPage extends StatefulWidget {
   @override
@@ -64,20 +63,20 @@ class _MaterialReconciliationPageState
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   _buildDropDownMenu(),
-                  SizedBox(height: 16.0),
+                  const SizedBox(height: 16.0),
                   Column(
                     children: _buildCards(),
                   ),
-                  SizedBox(height: 16.0),
+                  const SizedBox(height: 16.0),
                   _buildSubmitButton(),
-                  SizedBox(height: 16.0),
+                  const SizedBox(height: 16.0),
                   _buildWeightTable(),
                 ],
               ),
             ),
           ),
           if (isLoading)
-            Center(
+            const Center(
               child: CircularProgressIndicator(),
             ),
         ],
@@ -89,7 +88,7 @@ class _MaterialReconciliationPageState
     List<Widget> cards = [];
     for (var material in materials) {
       cards.add(_buildCard(material));
-      cards.add(SizedBox(height: 16.0));
+      cards.add(const SizedBox(height: 16.0));
     }
     return cards;
   }
@@ -108,7 +107,7 @@ class _MaterialReconciliationPageState
           selectedOption = newValue;
         });
       },
-      decoration: InputDecoration(
+      decoration: const InputDecoration(
         labelText: 'Select Option',
         border: OutlineInputBorder(),
       ),
@@ -120,39 +119,39 @@ class _MaterialReconciliationPageState
     return Card(
       elevation: 3.0,
       child: Padding(
-        padding: EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               material,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 18.0,
                 fontWeight: FontWeight.bold,
               ),
             ),
-            SizedBox(height: 16.0),
+            const SizedBox(height: 16.0),
             TextField(
               controller: controllers[index]['qtyReceived'],
-              decoration: InputDecoration(labelText: 'Qty. Received'),
+              decoration: const InputDecoration(labelText: 'Qty. Received'),
               keyboardType: TextInputType.number,
             ),
-            SizedBox(height: 16.0),
+            const SizedBox(height: 16.0),
             TextField(
               controller: controllers[index]['fgReceived'],
-              decoration: InputDecoration(labelText: 'FG Received by Store'),
+              decoration: const InputDecoration(labelText: 'FG Received by Store'),
               keyboardType: TextInputType.number,
             ),
-            SizedBox(height: 16.0),
+            const SizedBox(height: 16.0),
             TextField(
               controller: controllers[index]['totalRejection'],
-              decoration: InputDecoration(labelText: 'Total Rejection'),
+              decoration: const InputDecoration(labelText: 'Total Rejection'),
               keyboardType: TextInputType.number,
             ),
-            SizedBox(height: 16.0),
+            const SizedBox(height: 16.0),
             TextField(
               controller: controllers[index]['qcControlSample'],
-              decoration: InputDecoration(labelText: 'QC+ Control Sample'),
+              decoration: const InputDecoration(labelText: 'QC+ Control Sample'),
               keyboardType: TextInputType.number,
             ),
           ],
@@ -166,7 +165,7 @@ class _MaterialReconciliationPageState
       onPressed: () {
         _submitData();
       },
-      child: Text('Submit'),
+      child: const Text('Submit'),
     );
   }
 
@@ -192,8 +191,8 @@ class _MaterialReconciliationPageState
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16.0),
               child: Text(
                 'Reconciliation Table',
                 style: TextStyle(
@@ -203,7 +202,7 @@ class _MaterialReconciliationPageState
               ),
             ),
             IconButton(
-              icon: Icon(Icons.refresh),
+              icon: const Icon(Icons.refresh),
               onPressed: () {
                 _refreshTableData();
               },
@@ -282,7 +281,7 @@ class _MaterialReconciliationPageState
               'qcControlSample': qcControlSample,
               'qtyUsed': qtyUsed.toString(),
               'qtyReturned': qtyReturned.toString(),
-              'percentRejection': percentRejection.toStringAsFixed(2) + '%', // to keep only two decimal places
+              'percentRejection': '${percentRejection.toStringAsFixed(2)}%', // to keep only two decimal places
             };
 
             // Upload the calculated data to Firestore
@@ -293,11 +292,11 @@ class _MaterialReconciliationPageState
               'qcControlSample': qcControlSample,
               'qtyUsed': qtyUsed.toString(),
               'qtyReturned': qtyReturned.toString(),
-              'percentRejection': percentRejection.toStringAsFixed(2) + '%',
+              'percentRejection': '${percentRejection.toStringAsFixed(2)}%',
             });
           } else {
             // Handle the error
-            print('Invalid input');
+            // print('Invalid input');
           }
         }
 
@@ -346,31 +345,54 @@ class _MaterialReconciliationPageState
 
         QuerySnapshot querySnapshot = await reconciliationSheetRef.get();
 
+        List<Map<String, String>> updatedWeightList = List.generate(
+          materials.length,
+              (index) => {
+            'material': materials[index],
+            'qtyReceived': '',
+            'fgReceived': '',
+            'totalRejection': '',
+            'qcControlSample': '',
+            'qtyUsed': '',
+            'qtyReturned': '',
+            'percentRejection': '',
+          },
+        );
+
+        querySnapshot.docs.forEach((doc) {
+          String material = doc.id;
+          int index = materials.indexOf(material);
+          if (index != -1) {
+            setState(() {
+              updatedWeightList[index] = {
+                'material': material,
+                'qtyReceived': doc['qtyReceived'] != null ? doc['qtyReceived'].toString() : '',
+                'fgReceived': doc['fgReceived'] != null ? doc['fgReceived'].toString() : '',
+                'totalRejection': doc['totalRejection'] != null ? doc['totalRejection'].toString() : '',
+                'qcControlSample': doc['qcControlSample'] != null ? doc['qcControlSample'].toString() : '',
+                'qtyUsed': doc['qtyUsed'] != null ? doc['qtyUsed'].toString() : '',
+                'qtyReturned': doc['qtyReturned'] != null ? doc['qtyReturned'].toString() : '',
+                'percentRejection': doc['percentRejection'] != null ? doc['percentRejection'].toString() : '',
+              };
+            });
+          }
+        });
+
         setState(() {
-          weightList = querySnapshot.docs.map((doc) {
-            return {
-              'material': doc.id,
-              'qtyReceived': doc['qtyReceived'] != null ? doc['qtyReceived'].toString() : '',
-              'fgReceived': doc['fgReceived'] != null ? doc['fgReceived'].toString() : '',
-              'totalRejection': doc['totalRejection'] != null ? doc['totalRejection'].toString() : '',
-              'qcControlSample': doc['qcControlSample'] != null ? doc['qcControlSample'].toString() : '',
-              'qtyUsed': doc['qtyUsed'] != null ? doc['qtyUsed'].toString() : '',
-              'qtyReturned': doc['qtyReturned'] != null ? doc['qtyReturned'].toString() : '',
-              'percentRejection': doc['percentRejection'] != null ? doc['percentRejection'].toString() : '',
-            };
-          }).toList();
+          weightList = updatedWeightList;
           isLoading = false;
         });
       } catch (e) {
         setState(() {
           isLoading = false;
         });
-        print('Error fetching data: $e');
+        // print('Error fetching data: $e');
       }
     } else {
-      print('No batch number selected');
+      // print('No batch number selected');
     }
   }
+
 
 
 
@@ -399,7 +421,7 @@ class _MaterialReconciliationPageState
       setState(() {
         isLoading = false;
       });
-      print(e.toString());
+      // print(e.toString());
     }
   }
 

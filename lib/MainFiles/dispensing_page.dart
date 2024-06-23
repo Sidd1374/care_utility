@@ -70,7 +70,7 @@ class _MaterialDispensingPageState extends State<MaterialDispensingPage> {
       setState(() {
         isLoading = false; // Stop loading indicator in case of error
       });
-      print(e.toString());
+      // print(e.toString());
     }
   }
 
@@ -90,7 +90,7 @@ class _MaterialDispensingPageState extends State<MaterialDispensingPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Material Dispensing'),
+        title: const Text('Material Dispensing'),
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -99,7 +99,7 @@ class _MaterialDispensingPageState extends State<MaterialDispensingPage> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               _buildDropDownMenu(),
-              SizedBox(height: 16.0),
+              const SizedBox(height: 16.0),
               Visibility(
                 visible: !isLoading, // Hide when loading
                 child: Column(
@@ -107,16 +107,16 @@ class _MaterialDispensingPageState extends State<MaterialDispensingPage> {
                     Column(
                       children: _buildCards(),
                     ),
-                    SizedBox(height: 16.0),
+                    const SizedBox(height: 16.0),
                     _buildSubmitButton(),
-                    SizedBox(height: 16.0),
+                    const SizedBox(height: 16.0),
                     _buildDispensedTable(),
                   ],
                 ),
               ),
               Visibility(
                 visible: isLoading, // Show only when loading
-                child: Center(
+                child: const Center(
                   child: CircularProgressIndicator(), // Show loading indicator
                 ),
               ),
@@ -185,13 +185,13 @@ class _MaterialDispensingPageState extends State<MaterialDispensingPage> {
             const SizedBox(height: 16.0),
             TextField(
               controller: controllers[index]['STD Qty'],
-              decoration: InputDecoration(labelText: 'STD Qty'),
+              decoration: const InputDecoration(labelText: 'STD Qty'),
               keyboardType: TextInputType.number,
             ),
-            SizedBox(height: 16.0),
+            const SizedBox(height: 16.0),
             TextField(
               controller: controllers[index]['Actual Qty'],
-              decoration: InputDecoration(labelText: 'Actual Qty'),
+              decoration: const InputDecoration(labelText: 'Actual Qty'),
               keyboardType: TextInputType.number,
             ),
           ],
@@ -205,14 +205,14 @@ class _MaterialDispensingPageState extends State<MaterialDispensingPage> {
     return ElevatedButton(
       onPressed: isLoading ? null : _submitData, // Disable button when loading
       child: isLoading
-          ? SizedBox(
+          ? const SizedBox(
         width: 24,
         height: 24,
         child: CircularProgressIndicator(
           valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
         ),
       )
-          : Text('Submit'),
+          : const Text('Submit'),
     );
   }
 
@@ -236,7 +236,7 @@ class _MaterialDispensingPageState extends State<MaterialDispensingPage> {
               ),
             ),
             IconButton(
-              icon: Icon(Icons.refresh),
+              icon: const Icon(Icons.refresh),
               onPressed: isLoading ? null : _refreshTableData, // Disable refresh button when loading
             ),
           ],
@@ -376,10 +376,10 @@ class _MaterialDispensingPageState extends State<MaterialDispensingPage> {
         setState(() {
           isLoading = false; // Stop loading indicator in case of error
         });
-        print(e.toString());
+        // print(e.toString());
       }
     } else {
-      print('No batch number selected');
+      // print('No batch number selected');
     }
   }
 }

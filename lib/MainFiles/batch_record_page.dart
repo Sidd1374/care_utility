@@ -100,7 +100,7 @@ class _BatchRecordPageState extends State<BatchRecordPage> {
               ),
             ),
           ),
-          if (isLoading) CircularProgressIndicator(), // Loading indicator
+          if (isLoading) const CircularProgressIndicator(), // Loading indicator
           if (isSubmitted) // Success bar
             Positioned(
               top: 0,
@@ -108,8 +108,8 @@ class _BatchRecordPageState extends State<BatchRecordPage> {
               right: 0,
               child: Container(
                 color: Colors.green,
-                padding: EdgeInsets.all(8),
-                child: Text(
+                padding: const EdgeInsets.all(8),
+                child: const Text(
                   'Data submitted successfully!',
                   textAlign: TextAlign.center,
                   style: TextStyle(
@@ -148,7 +148,7 @@ class _BatchRecordPageState extends State<BatchRecordPage> {
         controller: controller,
         decoration: InputDecoration(
           labelText: labelText,
-          contentPadding: EdgeInsets.all(10),
+          contentPadding: const EdgeInsets.all(10),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(30),
           ),
@@ -265,14 +265,14 @@ class _BatchRecordPageState extends State<BatchRecordPage> {
 
           batchInfoCollection.doc(batchnumber).set(batchData)
               .then((value) {
-            print('Batch data added to Firestore.');
+            // print('Batch data added to Firestore.');
             setState(() {
               isLoading = false; // Hide loading indicator
               isSubmitted = true; // Show success bar
             });
           })
               .catchError((error) {
-            print('Error adding batch data to Firestore: $error');
+            // print('Error adding batch data to Firestore: $error');
             setState(() {
               isLoading = false; // Hide loading indicator
               isSubmitted = false; // Hide success bar
@@ -282,26 +282,26 @@ class _BatchRecordPageState extends State<BatchRecordPage> {
           // Create weight sheet, dispensing sheet, and reconciliation sheet documents
           recordsDataCollection.doc(batchnumber).collection('weight_sheet').doc('sheet').set({})
               .then((value) {
-            print('Weight sheet created for batch: $batchnumber');
+            // print('Weight sheet created for batch: $batchnumber');
           })
               .catchError((error) {
-            print('Error creating weight sheet for batch: $error');
+            // print('Error creating weight sheet for batch: $error');
           });
 
           recordsDataCollection.doc(batchnumber).collection('dispensing_sheet').doc('sheet').set({})
               .then((value) {
-            print('Dispensing sheet created for batch: $batchnumber');
+            // print('Dispensing sheet created for batch: $batchnumber');
           })
               .catchError((error) {
-            print('Error creating dispensing sheet for batch: $error');
+            // print('Error creating dispensing sheet for batch: $error');
           });
 
           recordsDataCollection.doc(batchnumber).collection('reconciliation_sheet').doc('sheet').set({})
               .then((value) {
-            print('Reconciliation sheet created for batch: $batchnumber');
+            // print('Reconciliation sheet created for batch: $batchnumber');
           })
               .catchError((error) {
-            print('Error creating reconciliation sheet for batch: $error');
+            // print('Error creating reconciliation sheet for batch: $error');
           });
         },
         child: const Text('Submit'),

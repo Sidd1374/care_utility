@@ -1,6 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'user.dart' as coUser;
 import 'package:shared_preferences/shared_preferences.dart';
 
 
@@ -23,9 +22,7 @@ class AuthProvider extends ChangeNotifier {
 
       notifyListeners();
     } catch (e) {
-      // Handle specific error cases if needed
-      print('Sign-in error: $e');
-      // Show a snackbar or dialog to the user
+      // print('Sign-in error: $e');
     }
   }
 

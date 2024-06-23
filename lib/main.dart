@@ -1,5 +1,3 @@
-import 'package:care_utility/MainFiles/home_page.dart';
-import 'package:care_utility/archive/test_screen.dart';
 import 'package:flutter/material.dart';
 import 'MainFiles/login_page_new.dart';
 import 'firebase_options.dart';
@@ -16,7 +14,7 @@ void main() async {
   runApp(
     ChangeNotifierProvider(
       create: (context) => AuthProvider(),
-      child: MyApp(),
+      child: const MyApp(),
     ),
   );
 }

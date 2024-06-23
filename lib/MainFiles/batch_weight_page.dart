@@ -45,7 +45,7 @@ class _BatchWeightPageState extends State<BatchWeightPage> {
       setState(() {
         isLoading = false; // Stop loading indicator in case of error
       });
-      print(e.toString());
+      // print(e.toString());
     }
   }
 
@@ -77,14 +77,14 @@ class _BatchWeightPageState extends State<BatchWeightPage> {
                 });
               },
               child: isLoading
-                  ? SizedBox(
+                  ? const SizedBox(
                 width: 24,
                 height: 24,
                 child: CircularProgressIndicator(
                   valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                 ),
               )
-                  : Text('Submit'),
+                  : const Text('Submit'),
             ),
             SizedBox(height: 20.h),
             Visibility(
@@ -93,7 +93,7 @@ class _BatchWeightPageState extends State<BatchWeightPage> {
             ),
             Visibility(
               visible: isLoading, // Show only when loading
-              child: Center(
+              child: const Center(
                 child: CircularProgressIndicator(), // Show loading indicator
               ),
             ),
@@ -156,7 +156,7 @@ class _BatchWeightPageState extends State<BatchWeightPage> {
               ),
               SizedBox(width: 70.h),
               IconButton(
-                icon: Icon(Icons.refresh),
+                icon: const Icon(Icons.refresh),
                 onPressed: isLoading ? null : refreshTableData, // Disable refresh button when loading
               ),
             ],
@@ -210,7 +210,7 @@ class _BatchWeightPageState extends State<BatchWeightPage> {
       setState(() {
         isLoading = false; // Stop loading indicator in case of error
       });
-      print(e.toString());
+      // print(e.toString());
     }
   }
 
@@ -242,7 +242,7 @@ class _BatchWeightPageState extends State<BatchWeightPage> {
       setState(() {
         isLoading = false; // Stop loading indicator in case of error
       });
-      print(e.toString());
+      // print(e.toString());
     }
   }
 }
